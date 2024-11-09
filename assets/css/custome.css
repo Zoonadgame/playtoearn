@@ -1,0 +1,145 @@
+.item-center-bl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.item-center-bl img{
+    /* min-width: 50px;  */
+    /* max-width: 270px; */
+    max-width: 95%;
+    transition: transform 0.2 ease;
+    filter: drop-shadow(14px 14px 8px #000000);
+}
+
+.item-center-bl img:active {
+    transform: scale(0.96);
+    filter: drop-shadow(4px 7px 5px #000000);
+}
+
+.number-add{
+    position: absolute;
+    top: 45%;
+    font-size: 30px;
+    opacity: 80%;
+}
+
+.animate-number {
+    animation: numberAnimation 0.5s ease-in-out;
+}
+
+@keyframes numberAnimation {
+    0% {
+        opacity: 0;
+        transform: translateY(20px); /* Mulai dari bawah */
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(0); /* Posisi tengah */
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px); /* Ke atas */
+    }
+}
+
+.icon-nav{
+    width: 35px;
+}
+
+.card-mine{
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 10px 5px 10px 5px;
+    border-radius: 10px;
+}
+
+.card-mine-body{
+    padding-bottom: 10px;
+    border-bottom: 1px solid #6e7275;
+}
+
+.title-img{
+    padding: 0;
+}
+
+.title-img h6{
+    font-size: 2.5vw;
+}
+
+.card-mine-img{
+    width: 65px;
+    border-radius: 10px;
+}
+
+.card-mine-img-cover{
+    position: absolute;
+    z-index: -10px;
+    width: 65px;
+    border-radius: 10px;
+}
+.modal-body .card-mine-img{
+    width: 105px;
+    border-radius: 10px;
+}
+
+.modal-body .card-mine-img-cover{
+    position: absolute;
+    z-index: -10px;
+    width: 105px;
+    border-radius: 10px;
+}
+
+.card-mine-profit span{
+    font-size: 8px;
+}
+
+.icon-coin{
+    max-width: 10px;
+}
+
+.card-mine-footer{
+    font-size: 10px;
+    display: flex;
+    padding: 10px 5px 0px 5px;
+}
+
+.card-lvl{
+    padding-right: 10px;
+    border-right:  1px solid #6e7275;
+    font-size: 3vw;
+}
+
+.card-fee{
+    padding-left: 10px;
+    font-size: 3vw;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 100px; /* Adjust the max width as needed */
+}
+
+.card-fee-modal{
+    font-size: 4vw;
+}
+.card-fee-modal .icon-coin{
+    max-width: 15px;
+}
+
+.boost img{
+    min-width: 10px;
+    max-width: 24px;
+}
+
+.btn-boost{
+    border: 2px solid #ff2ca9;
+    box-shadow: 1px -20px 13px -3px rgba(255,44,169,0.61) !important;
+-webkit-box-shadow: 1px -20px 13px -3px rgba(255,44,169,0.61) !important;
+-moz-box-shadow: 1px -20px 13px -3px rgba(255,44,169,0.61) !important;
+}
+
+
+
+
+
+
+
