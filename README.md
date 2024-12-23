@@ -24,15 +24,15 @@ From fun and engaging beginnings in Zoonad to the sophisticated trading landscap
 ## Installation
 1. Clone this repository:
   ```bash
-  git clone https://github.com/Zoonadgame/airdrop.git
+  https://github.com/Zoonadgame/playtoearn.git
   ```
 2. Navigate to the project directory:
   ```bash
-  cd airdrop
+  cd playtoearn
   ```
 3. Ensure you have a local server such as XAMPP or WAMP installed.
 4. Move the files to your local server directory (e.g., htdocs for XAMPP).
-5. Start your server and access the game through your browser at http://localhost/airdrop
+5. Start your server and access the game through your browser at http://localhost/playtoearn
 
 ## How to Play
 1. Open the game on https://t.me/Zoonadbot.
