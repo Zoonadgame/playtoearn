@@ -1,9 +1,9 @@
 <?php  
 // CLASS TABLE USER
-class cardOwnedTableClass extends connMySQLClass{
+class historyTonTableClass extends connMySQLClass{
     
     // SET ATTRIBUTE TABLE NAME
-    private $table_name = "card_owned_zoonad";
+    private $table_name = "ton_zoonad";
     
     // CREATE DEFAULT TABLE
     public function __construct(){
@@ -12,10 +12,10 @@ class cardOwnedTableClass extends connMySQLClass{
             // SET QUERY
             $sql = "CREATE TABLE $this->table_name (
                 id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                card_owned_id_user INT(11) NOT NULL,
-                card_owned_id_card INT(11) NOT NULL,
-                card_owned_lvl INT(11) NOT NULL,
-                card_owned_upgrade_date TEXT NOT NULL
+                ton_id_user VARCHAR(15) NOT NULL,
+                ton_desc TEXT NOT NULL,
+                ton_total DOUBLE NOT NULL,
+                ton_date TEXT NOT NULL
             )";
             // EXECUTE THE QUERY TO CREATE TABLE
             $this->dbConn()->query($sql);
@@ -24,8 +24,8 @@ class cardOwnedTableClass extends connMySQLClass{
         }
     }
 
-    // insert data card
-    public function insertCardOwned(string $fields, string $value){
+    // insert TON
+    public function insertGetTon(string $fields, string $value){
         // query
         $sql = "INSERT INTO $this->table_name ($fields) VALUE($value)";
         // EXECUTE THE QUERY TO CREATE TABLE
@@ -35,8 +35,8 @@ class cardOwnedTableClass extends connMySQLClass{
         return $exe;
     }
 
-    // get data card
-    public function selectCardOwned(string $fields, string $key){
+    // get TON
+    public function selectGetTon(string $fields, string $key){
         // query
         $sql = "SELECT $fields FROM $this->table_name WHERE $key";
         // EXECUTE QUERY
@@ -54,8 +54,8 @@ class cardOwnedTableClass extends connMySQLClass{
         return $result;
     }
     
-    // update data card
-    public function updateCardOwned(string $dataSet, string $key){
+    // update TON
+    public function updateGetTon(string $dataSet, string $key){
         // query
         $sql = "UPDATE $this->table_name SET $dataSet WHERE $key";
         // EXECUTE THE QUERY TO CREATE TABLE

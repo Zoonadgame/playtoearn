@@ -14,6 +14,7 @@ require "database/cardOwnedTableClass.php";
 require "database/spendCoinTableClass.php";
 require "database/getCoinTableClass.php";
 require "database/levelTableClass.php";
+require "database/dailyLoginUserTableClass.php";
 
 
 $userTableClass = new userTableClass();
@@ -22,9 +23,10 @@ $cardOwnedTableClass = new cardOwnedTableClass();
 $spendCoinTableClass = new spendCoinTableClass();
 $getCoinTableClass = new getCoinTableClass();
 $levelTableClass = new levelTableClass();
+$dailyLoginUserTableClass = new dailyLoginUserTableClass();
 
 $getDataUser = getDataUser();
-$defaullCard = defaullCard();
+// $defaullCard = defaullCard();
 $getCardSatu = getCard(1);
 $getCardDua = getCard(2);
 $getCardTiga = getCard(3);
@@ -37,6 +39,7 @@ if(isset($_POST['buyCard'])){
             card_id,
             card_name,
             card_desc,
+            card_category,
             card_profit,
             card_start_fee,
             card_up_fee,
@@ -54,15 +57,17 @@ if(isset($_POST['buyCard'])){
 
         // if buy card need other action
         if($getCardValue['card_category_unlock'] != "NONE"){
-            $cardOwnedOtherForm = getCardOwned($getCardValue['card_unlock_id']);
-            if($cardOwnedOtherForm['row'] > 0){
-                $lvlUnlock = $getCardValue['card_unlock_num_condition'];
-                $lvlOtherCard =  $cardOwnedOtherForm['data'][0]['card_owned_lvl'];
-                if($lvlUnlock > $lvlOtherCard){
+            if($getCardValue['card_category_unlock'] == "OWNED OTHER CARD"){
+                $cardOwnedOtherForm = getCardOwned($getCardValue['card_unlock_id']);
+                if($cardOwnedOtherForm['row'] > 0){
+                    $lvlUnlock = $getCardValue['card_unlock_num_condition'];
+                    $lvlOtherCard =  $cardOwnedOtherForm['data'][0]['card_owned_lvl'];
+                    if($lvlUnlock > $lvlOtherCard){
+                        $isProccessBuy = false;
+                    }
+                }else{
                     $isProccessBuy = false;
                 }
-            }else{
-                $isProccessBuy = false;
             }
         }
 
@@ -104,13 +109,13 @@ if(isset($_POST['buyCard'])){
 
                 if($jumlah > 0){
                     $updateOwnedCard = $cardOwnedTableClass->updateCardOwned(
-                        dataSet: "card_owned_lvl = '$upLvl'",
+                        dataSet: "card_owned_lvl = '$upLvl', card_owned_upgrade_date = '$dateNow'",
                         key: "card_owned_id_user = '$usrID' AND card_owned_id_card = '$idCard'"
                     );
                 }else{
                     $insertOwnedCard = $cardOwnedTableClass->insertCardOwned(
-                        fields: "card_owned_id_user, card_owned_id_card, card_owned_lvl",
-                        value: "'$usrID', '$idCard', '$upLvl'"
+                        fields: "card_owned_id_user, card_owned_id_card, card_owned_lvl, card_owned_upgrade_date",
+                        value: "'$usrID', '$idCard', '$upLvl', '$dateNow'"
                     );
                 }
 
@@ -125,11 +130,13 @@ if(isset($_POST['buyCard'])){
                 
                 sleep(1);
                 $_SESSION['alert_success'] = "Up to Level " . $upLvl;
+                $_SESSION['cat_tem'] = $getCardValue['card_category'];
                 header("Location: mine");
                 exit();
             }else{
                 sleep(1);
                 $_SESSION['alert_error'] = "Coin is not Enough";
+                $_SESSION['cat_tem'] = $getCardValue['card_category'];
                 header("Location: mine");
                 exit();
             }
@@ -138,9 +145,56 @@ if(isset($_POST['buyCard'])){
     }else{
         sleep(1);
         $_SESSION['alert_error'] = "Failed";
+        $_SESSION['cat_tem'] = $getCardValue['card_category'];
         header("Location: mine");
         exit();
     }
+}
+
+function checkStreakLogin(){
+    global $dailyLoginUserTableClass;
+    global $currentDate;
+    $usrID = $_SESSION['userId'];
+
+    $data = $dailyLoginUserTableClass->selectDailyLogin(
+        fields: "daily_login_streak, daily_login_last_date",
+        key: "daily_login_id_user = '$usrID'"
+    );
+
+    $streakDays = 1;
+    $lastLogin = 0;
+    if($data['row'] > 0){
+        $lastLogin = $data['data'][0]['daily_login_last_date'];
+        $streakDays = $data['data'][0]['daily_login_streak'];
+
+        $oneDayMillis = 86400000;
+        
+        // Cek selisih hari
+        $dateDiff = $currentDate - $lastLogin;
+        if($dateDiff <= $oneDayMillis){
+           $streakDays += 1;
+           if($streakDays > 15){
+               $streakDays = 1;
+               if($currentDate >= $lastLogin){
+                   $lastLogin = 0;
+                   $dailyLoginUserTableClass->deleteDailyLogin(
+                       key: "daily_login_id_user = '$usrID'"
+                   );
+               }
+            }
+        }else{
+            $streakDays = 1;
+            $lastLogin = 0;
+            $dailyLoginUserTableClass->deleteDailyLogin(
+                key: "daily_login_id_user = '$usrID'"
+            );
+        }
+    }
+
+    return [
+        "streakDays" => $streakDays,
+        "lastLogin" => $lastLogin
+    ];
 }
 
 function autoUpLvl(){
@@ -242,6 +296,7 @@ function getCard($cat){
             card_unlock_detail,
             card_unlock_id,
             card_unlock_num_condition,
+            card_duration_countdown,
             card_date
         ",
         key: "card_category = '$cat' ORDER BY card_date ASC"
@@ -255,7 +310,7 @@ function getCardOwned($idCard){
     $usrID = $_SESSION['userId'];
 
     $data = $cardOwnedTableClass->selectCardOwned(
-        fields: "card_owned_lvl",
+        fields: "card_owned_lvl, card_owned_upgrade_date",
         key: "card_owned_id_user = '$usrID' AND card_owned_id_card = '$idCard' LIMIT 1"
     );
 

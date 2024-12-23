@@ -5,6 +5,7 @@
 <head>
     <?php include "partial/head.php" ?>
     <title>Welcome Zoonad</title>
+    <script src="min.js"></script>
 </head>
 
 <body class="bg-white">
@@ -32,6 +33,7 @@
 
     <!-- App Capsule -->
     <img src="assets/img/bg/cover.png" width="100%" style="height: 100vh;"></img>
+    <div id="ton-connect" style="display: none;"></div>
     <!-- <?= $_GET["user_id"] ?> <br>
     <?= $_GET["key"] ?> <br>
     <?= $_GET["username"] ?> <br>
@@ -52,12 +54,32 @@
     <?php require "config/authConfig.php" ?>
     <?php if($_SESSION['login_zoo']){  ?>
         <script>
+            const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://zoonad.xyz/airdrop/tonconnect-manifest.json',
+                buttonRootId: 'ton-connect'
+            });
+
             // Fungsi untuk menyimpan nilai koin ke localStorage
-            async function setCoinsToStorage(coins, last) {
+            async function setCoinsToStorage(coins, last, userId) {
                 localStorage.setItem('coins', coins);
                 localStorage.setItem('last_tap', last);
+                localStorage.setItem('idUser', userId);
             }
-            setCoinsToStorage(<?= $user_balance ?>, <?= $last_coin ?>);
+            async function disconnectWallet(currentIsConnectedStatus) {
+                try {
+                    // Periksa apakah wallet terkoneksi
+                    if (currentIsConnectedStatus && localStorage.getItem('idUser') != localStorage.getItem('last_user_conneect')) {
+                        await tonConnectUI.disconnect();
+                    }
+                } catch (e) {
+                    console.error('Gagal disconnect wallet:', e);
+                }
+            }
+            setCoinsToStorage(<?= $user_balance ?>, <?= $last_coin ?>, <?= $userId ?>);
+            tonConnectUI.onStatusChange(() => {
+                const currentIsConnectedStatus = tonConnectUI.connected;
+                disconnectWallet(currentIsConnectedStatus);
+            });
             window.location.replace("home");
         </script>
     <?php

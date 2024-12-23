@@ -7,7 +7,7 @@
 .item-center-bl img{
     /* min-width: 50px;  */
     /* max-width: 270px; */
-    max-width: 95%;
+    max-width: 85%;
     transition: transform 0.2 ease;
     filter: drop-shadow(14px 14px 8px #000000);
 }
@@ -96,6 +96,9 @@
 .icon-coin{
     max-width: 10px;
 }
+.icon-coin-rank{
+    max-width: 20px;
+}
 
 .card-mine-footer{
     font-size: 10px;
@@ -137,7 +140,26 @@
 -moz-box-shadow: 1px -20px 13px -3px rgba(255,44,169,0.61) !important;
 }
 
+.lvl-icon{
+    min-width: 10px;
+    max-width: 20px;
+}
 
+.border-pink{
+  border-top: 2px solid #ff2ca9;
+  border-right: 2px solid #ff2ca9;
+  border-left: 2px solid #ff2ca9;
+}
+.border-emas{
+  border-top: 2px solid #FAB12F;
+  border-right: 2px solid #FAB12F;
+  border-left: 2px solid #FAB12F;
+}
+.border-bronze{
+  border-top: 2px solid #924931;
+  border-right: 2px solid #924931;
+  border-left: 2px solid #924931;
+}
 
 
 

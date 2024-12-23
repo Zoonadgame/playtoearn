@@ -1,9 +1,9 @@
 <?php  
 // CLASS TABLE USER
-class cardOwnedTableClass extends connMySQLClass{
+class tapTableClass extends connMySQLClass{
     
     // SET ATTRIBUTE TABLE NAME
-    private $table_name = "card_owned_zoonad";
+    private $table_name = "tap_zoonad";
     
     // CREATE DEFAULT TABLE
     public function __construct(){
@@ -12,10 +12,10 @@ class cardOwnedTableClass extends connMySQLClass{
             // SET QUERY
             $sql = "CREATE TABLE $this->table_name (
                 id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                card_owned_id_user INT(11) NOT NULL,
-                card_owned_id_card INT(11) NOT NULL,
-                card_owned_lvl INT(11) NOT NULL,
-                card_owned_upgrade_date TEXT NOT NULL
+                tap_id_user INT(11) NOT NULL UNIQUE,
+                tap_max DOUBLE NOT NULL DEFAULT '100',
+                tap_last DOUBLE NOT NULL DEFAULT '100',
+                tap_total DOUBLE NOT NULL DEFAULT '1'
             )";
             // EXECUTE THE QUERY TO CREATE TABLE
             $this->dbConn()->query($sql);
@@ -24,8 +24,8 @@ class cardOwnedTableClass extends connMySQLClass{
         }
     }
 
-    // insert data card
-    public function insertCardOwned(string $fields, string $value){
+    // insert data tap
+    public function insertTap(string $fields, string $value){
         // query
         $sql = "INSERT INTO $this->table_name ($fields) VALUE($value)";
         // EXECUTE THE QUERY TO CREATE TABLE
@@ -35,8 +35,8 @@ class cardOwnedTableClass extends connMySQLClass{
         return $exe;
     }
 
-    // get data card
-    public function selectCardOwned(string $fields, string $key){
+    // get data tap
+    public function selectTap(string $fields, string $key){
         // query
         $sql = "SELECT $fields FROM $this->table_name WHERE $key";
         // EXECUTE QUERY
@@ -54,8 +54,8 @@ class cardOwnedTableClass extends connMySQLClass{
         return $result;
     }
     
-    // update data card
-    public function updateCardOwned(string $dataSet, string $key){
+    // update data tap
+    public function updateTap(string $dataSet, string $key){
         // query
         $sql = "UPDATE $this->table_name SET $dataSet WHERE $key";
         // EXECUTE THE QUERY TO CREATE TABLE

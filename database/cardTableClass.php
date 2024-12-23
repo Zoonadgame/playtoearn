@@ -24,6 +24,7 @@ class cardTableClass extends connMySQLClass{
                 card_unlock_detail TEXT NOT NULL DEFAULT 'NONE',
                 card_unlock_id VARCHAR(11) NOT NULL DEFAULT 'NONE',
                 card_unlock_num_condition INT(11) NOT NULL DEFAULT '0',
+                card_duration_countdown TEXT NOT NULL DEFAULT '0',
                 card_date TEXT NOT NULL
             )";
             // EXECUTE THE QUERY TO CREATE TABLE

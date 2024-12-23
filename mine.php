@@ -120,17 +120,17 @@
                     <!-- category -->
                     <div class="bg-nav mt-2">
                         <div class="btn-group" role="group" style="width: 100%;">
-                            <input type="radio" class="btn-check" name="categoryCard" id="categoryCardsatu" checked>
-                            <label class="btn btn-outline-danger border-0" for="categoryCardsatu">Skills</label>
+                            <input type="radio" class="btn-check" name="categoryCard" id="categoryCardsatu" <?= $_SESSION['cat_tem'] == "1" || $_SESSION['cat_tem'] == "" ? "checked" : ""  ?>>
+                            <label class="btn btn-outline-danger border-0" for="categoryCardsatu">Tech Upgrade</label>
     
-                            <input type="radio" class="btn-check" name="categoryCard" id="categoryCarddua">
-                            <label class="btn btn-outline-danger border-0" for="categoryCarddua">Business</label>
+                            <input type="radio" class="btn-check" name="categoryCard" id="categoryCarddua" <?= $_SESSION['cat_tem'] == "2" ? "checked" : ""  ?>>
+                            <label class="btn btn-outline-danger border-0" for="categoryCarddua">Market</label>
     
-                            <input type="radio" class="btn-check" name="categoryCard" id="categoryCardtiga">
-                            <label class="btn btn-outline-danger border-0" for="categoryCardtiga">Special</label>
+                            <input type="radio" class="btn-check" name="categoryCard" id="categoryCardtiga" <?= $_SESSION['cat_tem'] == "3" ? "checked" : ""  ?>>
+                            <label class="btn btn-outline-danger border-0" for="categoryCardtiga">Special Power</label>
                         </div>
                     </div>
-                    
+                    <?php $dateMiliNow = round(microtime(true) * 1000); $checkStreakLogin = checkStreakLogin()['streakDays'] - 1; ?>
                     <script>
                         function loadingForm() {
                             // Mengatur tombol menjadi tidak dapat di-klik selama proses loading
@@ -142,30 +142,61 @@
                             foreach($getCardSatu as $cardData){
                                 $cardOwned = getCardOwned($cardData['card_id']);
                                 $startFee = $cardData['card_start_fee'];
+                                $card_duration_countdown = $cardData['card_duration_countdown'];
                                 $fee = $startFee;
                                 $jumlah = 0;
+                                $card_owned_upgrade_date = 0;
                                 if($cardOwned['row'] > 0){
                                     $jumlah = $cardOwned['data'][0]['card_owned_lvl'];
-                                    $persenToUp = $cardData['card_up_fee'] * $jumlah;
+                                    $persenToUp = $cardData['card_up_fee'] * ($jumlah + 1);
                                     $fee += $startFee * $persenToUp;
+                                    $card_owned_upgrade_date = $cardOwned['data'][0]['card_owned_upgrade_date'];
+                                    $card_duration_countdown *= ($jumlah * 1.3);
+
                                 }
                                 $profit = $fee * $cardData['card_profit'];
+                                $endCountDown = $card_owned_upgrade_date + $card_duration_countdown;
                                 $textFee = '<img class="icon-coin" src="assets/img/coin-dark.svg" alt=""> ' . formatAngka($fee);
+                                $textFeeModal = '<img class="icon-coin" src="assets/img/coin-dark.svg" alt=""> ' . number_format($fee);
+                                if($jumlah > 0){
+                                    $textFee = '<img class="icon-coin" src="assets/img/coin.svg" alt=""> ' . formatAngka($fee);
+                                    $textFeeModal = '<img class="icon-coin" src="assets/img/coin.svg" alt=""> ' . number_format($fee);
+                                }
                                 $lock = false;
-                                if($cardData['card_category_unlock'] != "NONE"){
+                                if($jumlah >= 15){
                                     $lock = true;
-                                    if($cardData['card_category_unlock'] == "OWNED OTHER CARD"){
-                                        $cardOwnedOther = getCardOwned($cardData['card_unlock_id']);
-                                        if($cardOwnedOther['row'] > 0){
-                                            $lvlUnlock = $cardData['card_unlock_num_condition'];
-                                            $lvlOtherCard =  $cardOwnedOther['data'][0]['card_owned_lvl'];
-                                            if($lvlUnlock > $lvlOtherCard){
+                                    $textFee = " Level Max ";
+                                    $textFeeModal = " Level Max ";
+                                }else{
+                                    if($cardData['card_category_unlock'] != "NONE"){
+                                        $lock = true;
+                                        if($cardData['card_category_unlock'] == "OWNED OTHER CARD"){
+                                            $cardOwnedOther = getCardOwned($cardData['card_unlock_id']);
+                                            if($cardOwnedOther['row'] > 0){
+                                                $lvlUnlock = $cardData['card_unlock_num_condition'];
+                                                $lvlOtherCard =  $cardOwnedOther['data'][0]['card_owned_lvl'];
+                                                if($lvlUnlock > $lvlOtherCard){
+                                                    $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                    $textFeeModal = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                }else{
+                                                    $lock = false;
+                                                }
+                                            }else{
                                                 $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                $textFeeModal = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                            }
+                                        }elseif($cardData['card_category_unlock'] == "STREAK LOGIN"){
+                                            if($jumlah == 0){
+                                                $lvlUnlock = $cardData['card_unlock_num_condition'];
+                                                if($lvlUnlock > $checkStreakLogin){
+                                                    $textFee = "Requires " . $cardData['card_unlock_num_condition'] . " Daily Login Streak!";
+                                                    $textFeeModal = "Requires " . $cardData['card_unlock_num_condition'] . " Daily Login Streak!";
+                                                }else{
+                                                    $lock = false;
+                                                }
                                             }else{
                                                 $lock = false;
                                             }
-                                        }else{
-                                            $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
                                         }
                                     }
                                 }
@@ -187,8 +218,8 @@
                                     </div>
                                 </div>
                                 <div class="card-mine-footer">
-                                    <div class="card-lvl text-muted">Lvl <?= number_format($jumlah) ?></div>
-                                    <div class="card-fee text-muted">
+                                    <div class="card-lvl text-<?= $jumlah > 0 ? "white" : "muted" ?>">Lvl <?= number_format($jumlah) ?></div>
+                                    <div class="card-fee text-<?= $jumlah > 0 ? "white" : "muted" ?>">
                                         <?= $textFee ?>
                                     </div>
                                 </div>
@@ -214,17 +245,62 @@
                                                 <h3 class="text-white"><?= ucwords($cardData['card_name']) ?></h3>
                                                 <p style="font-size: small;"><?= $cardData['card_desc'] ?></p>
                                                 <p>Profit per hour</p>
-                                                <span class="fee"><img class="icon-coin" src="assets/img/coin.png" alt=""> +<?= formatAngka($profit) ?></span>
+                                                <span class="fee"><img class="icon-coin" src="assets/img/coin.png" alt=""> +<?= number_format($profit) ?></span>
                                             </div>
                                             
                                             <form method="post" action="" class="form-group basic">
                                                 <input type="hidden" name="idCard" value="<?= $cardData['card_id'] ?>">
-                                                <button type="<?= $lock ? 'button' : 'submit' ?>" <?= $lock ? '' :  'onclick="loadingForm()"' ?>  name="buyCard" class="btn btn-block <?= $lock ? '' : 'btn-pink' ?> btn-lg text-white"
+                                                <?php if(!$lock && $dateMiliNow < $endCountDown){ ?>
+                                                
+                                                <button type="button" disabled onclick="loadingForm()" name="buyCard" id="actionButtonSatu<?= $cardData['card_id'] ?>" class="btn btn-block btn-lg text-white"
                                                     data-bs-dismiss="modal">
-                                                    <span class="card-fee-modal">
-                                                        <?= $textFee ?>
+                                                    <span class="card-fee-modal" id="textCountDownSatu<?= $cardData['card_id'] ?>">
+                                                    </span>
+                                                    <span class="card-fee-modal" id="textFeeSatu<?= $cardData['card_id'] ?>" style="display: none;">
+                                                        <?= $textFeeModal ?>
                                                     </span>
                                                 </button>
+                                                <script>
+                                                    (function() {
+                                                        const endTime = <?= $endCountDown ?>;
+                                                        const button = document.getElementById("actionButtonSatu<?= $cardData['card_id'] ?>");
+                                                        const textCountDown = document.getElementById("textCountDownSatu<?= $cardData['card_id'] ?>");
+                                                        const textFee = document.getElementById("textFeeSatu<?= $cardData['card_id'] ?>");
+
+                                                        function updateCountdown() {
+                                                            const now = Date.now();
+                                                            const timeLeft = endTime - now;
+
+                                                            if (timeLeft <= 0) {
+                                                                textCountDown.style.display = "none";
+                                                                textFee.style.display = "";
+                                                                button.type = "submit";
+                                                                button.classList.add("btn-pink");
+                                                                button.disabled = false;
+                                                                clearInterval(countdownInterval);
+                                                                return;
+                                                            }
+
+                                                            const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+                                                            const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+                                                            const seconds = Math.floor((timeLeft / 1000) % 60);
+
+                                                            textCountDown.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                                                        }
+
+                                                        const countdownInterval = setInterval(updateCountdown, 1000);
+                                                        updateCountdown();
+                                                    })();
+
+                                                </script>
+                                                <?php }else{ ?>
+                                                <button type="<?= $lock ? 'button' : 'submit' ?>" <?= $lock ? 'disabled' :  'onclick="loadingForm()"' ?> name="buyCard" class="btn btn-block <?= $lock ? '' : 'btn-pink' ?> btn-lg text-white"
+                                                    data-bs-dismiss="modal">
+                                                    <span class="card-fee-modal">
+                                                        <?= $textFeeModal ?>
+                                                    </span>
+                                                </button>
+                                                <?php } ?>
                                             </form>
                                         </div>
                                     </div>
@@ -239,30 +315,60 @@
                             foreach($getCardDua as $cardData){
                                 $cardOwned = getCardOwned($cardData['card_id']);
                                 $startFee = $cardData['card_start_fee'];
+                                $card_duration_countdown = $cardData['card_duration_countdown'];
                                 $fee = $startFee;
                                 $jumlah = 0;
+                                $card_owned_upgrade_date = 0;
                                 if($cardOwned['row'] > 0){
                                     $jumlah = $cardOwned['data'][0]['card_owned_lvl'];
-                                    $persenToUp = $cardData['card_up_fee'] * $jumlah;
+                                    $persenToUp = $cardData['card_up_fee'] * ($jumlah + 1);
                                     $fee += $startFee * $persenToUp;
+                                    $card_owned_upgrade_date = $cardOwned['data'][0]['card_owned_upgrade_date'];
+                                    $card_duration_countdown *= ($jumlah * 1.3);
                                 }
                                 $profit = $fee * $cardData['card_profit'];
+                                $endCountDown = $card_owned_upgrade_date + $card_duration_countdown;
                                 $textFee = '<img class="icon-coin" src="assets/img/coin-dark.svg" alt=""> ' . formatAngka($fee);
+                                $textFeeModal = '<img class="icon-coin" src="assets/img/coin-dark.svg" alt=""> ' . number_format($fee);
+                                if($jumlah > 0){
+                                    $textFee = '<img class="icon-coin" src="assets/img/coin.svg" alt=""> ' . formatAngka($fee);
+                                    $textFeeModal = '<img class="icon-coin" src="assets/img/coin.svg" alt=""> ' . number_format($fee);
+                                }
                                 $lock = false;
-                                if($cardData['card_category_unlock'] != "NONE"){
+                                if($jumlah >= 15){
                                     $lock = true;
-                                    if($cardData['card_category_unlock'] == "OWNED OTHER CARD"){
-                                        $cardOwnedOther = getCardOwned($cardData['card_unlock_id']);
-                                        if($cardOwnedOther['row'] > 0){
-                                            $lvlUnlock = $cardData['card_unlock_num_condition'];
-                                            $lvlOtherCard =  $cardOwnedOther['data'][0]['card_owned_lvl'];
-                                            if($lvlUnlock > $lvlOtherCard){
+                                    $textFee = " Level Max ";
+                                    $textFeeModal = " Level Max ";
+                                }else{
+                                    if($cardData['card_category_unlock'] != "NONE"){
+                                        $lock = true;
+                                        if($cardData['card_category_unlock'] == "OWNED OTHER CARD"){
+                                            $cardOwnedOther = getCardOwned($cardData['card_unlock_id']);
+                                            if($cardOwnedOther['row'] > 0){
+                                                $lvlUnlock = $cardData['card_unlock_num_condition'];
+                                                $lvlOtherCard =  $cardOwnedOther['data'][0]['card_owned_lvl'];
+                                                if($lvlUnlock > $lvlOtherCard){
+                                                    $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                    $textFeeModal = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                }else{
+                                                    $lock = false;
+                                                }
+                                            }else{
                                                 $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                $textFeeModal = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                            }
+                                        }elseif($cardData['card_category_unlock'] == "STREAK LOGIN"){
+                                            if($jumlah == 0){
+                                                $lvlUnlock = $cardData['card_unlock_num_condition'];
+                                                if($lvlUnlock > $checkStreakLogin){
+                                                    $textFee = "Requires " . $cardData['card_unlock_num_condition'] . " Daily Login Streak!";
+                                                    $textFeeModal = "Requires " . $cardData['card_unlock_num_condition'] . " Daily Login Streak!";
+                                                }else{
+                                                    $lock = false;
+                                                }
                                             }else{
                                                 $lock = false;
                                             }
-                                        }else{
-                                            $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
                                         }
                                     }
                                 }
@@ -284,8 +390,8 @@
                                     </div>
                                 </div>
                                 <div class="card-mine-footer">
-                                    <div class="card-lvl text-muted">Lvl <?= number_format($jumlah) ?></div>
-                                    <div class="card-fee text-muted">
+                                    <div class="card-lvl text-<?= $jumlah > 0 ? "white" : "muted" ?>">Lvl <?= number_format($jumlah) ?></div>
+                                    <div class="card-fee text-<?= $jumlah > 0 ? "white" : "muted" ?>">
                                         <?= $textFee ?>
                                     </div>
                                 </div>
@@ -311,17 +417,62 @@
                                                 <h3 class="text-white"><?= ucwords($cardData['card_name']) ?></h3>
                                                 <p style="font-size: small;"><?= $cardData['card_desc'] ?></p>
                                                 <p>Profit per hour</p>
-                                                <span class="fee"><img class="icon-coin" src="assets/img/coin.png" alt=""> +<?= formatAngka($profit) ?></span>
+                                                <span class="fee"><img class="icon-coin" src="assets/img/coin.png" alt=""> +<?= number_format($profit) ?></span>
                                             </div>
 
                                             <form method="post" action="" class="form-group basic">
                                                 <input type="hidden" name="idCard" value="<?= $cardData['card_id'] ?>">
-                                                <button type="<?= $lock ? 'button' : 'submit' ?>" <?= $lock ? '' :  'onclick="loadingForm()"' ?>   name="buyCard" class="btn btn-block <?= $lock ? '' : 'btn-pink' ?> btn-lg text-white"
+                                                <?php if(!$lock && $dateMiliNow < $endCountDown){ ?>
+                                                
+                                                <button type="button" disabled onclick="loadingForm()" name="buyCard" id="actionButtonDua<?= $cardData['card_id'] ?>" class="btn btn-block btn-lg text-white"
                                                     data-bs-dismiss="modal">
-                                                    <span class="card-fee-modal">
-                                                        <?= $textFee ?>
+                                                    <span class="card-fee-modal" id="textCountDownDua<?= $cardData['card_id'] ?>">
+                                                    </span>
+                                                    <span class="card-fee-modal" id="textFeeDua<?= $cardData['card_id'] ?>" style="display: none;">
+                                                        <?= $textFeeModal ?>
                                                     </span>
                                                 </button>
+                                                <script>
+                                                    (function() {
+                                                        const endTime = <?= $endCountDown ?>;
+                                                        const button = document.getElementById("actionButtonDua<?= $cardData['card_id'] ?>");
+                                                        const textCountDown = document.getElementById("textCountDownDua<?= $cardData['card_id'] ?>");
+                                                        const textFee = document.getElementById("textFeeDua<?= $cardData['card_id'] ?>");
+
+                                                        function updateCountdown() {
+                                                            const now = Date.now();
+                                                            const timeLeft = endTime - now;
+
+                                                            if (timeLeft <= 0) {
+                                                                textCountDown.style.display = "none";
+                                                                textFee.style.display = "";
+                                                                button.type = "submit";
+                                                                button.classList.add("btn-pink");
+                                                                button.disabled = false;
+                                                                clearInterval(countdownInterval);
+                                                                return;
+                                                            }
+
+                                                            const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+                                                            const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+                                                            const seconds = Math.floor((timeLeft / 1000) % 60);
+
+                                                            textCountDown.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                                                        }
+
+                                                        const countdownInterval = setInterval(updateCountdown, 1000);
+                                                        updateCountdown();
+                                                    })();
+
+                                                </script>
+                                                <?php }else{ ?>
+                                                <button type="<?= $lock ? 'button' : 'submit' ?>" <?= $lock ? 'disabled' :  'onclick="loadingForm()"' ?> name="buyCard" class="btn btn-block <?= $lock ? '' : 'btn-pink' ?> btn-lg text-white"
+                                                    data-bs-dismiss="modal">
+                                                    <span class="card-fee-modal">
+                                                        <?= $textFeeModal ?>
+                                                    </span>
+                                                </button>
+                                                <?php } ?>
                                             </form>
                                         </div>
                                     </div>
@@ -336,30 +487,60 @@
                             foreach($getCardTiga as $cardData){
                                 $cardOwned = getCardOwned($cardData['card_id']);
                                 $startFee = $cardData['card_start_fee'];
+                                $card_duration_countdown = $cardData['card_duration_countdown'];
                                 $fee = $startFee;
                                 $jumlah = 0;
+                                $card_owned_upgrade_date = 0;
                                 if($cardOwned['row'] > 0){
                                     $jumlah = $cardOwned['data'][0]['card_owned_lvl'];
-                                    $persenToUp = $cardData['card_up_fee'] * $jumlah;
+                                    $persenToUp = $cardData['card_up_fee'] * ($jumlah + 1);
                                     $fee += $startFee * $persenToUp;
+                                    $card_owned_upgrade_date = $cardOwned['data'][0]['card_owned_upgrade_date'];
+                                    $card_duration_countdown *= ($jumlah * 1.3);
                                 }
                                 $profit = $fee * $cardData['card_profit'];
+                                $endCountDown = $card_owned_upgrade_date + $card_duration_countdown;
                                 $textFee = '<img class="icon-coin" src="assets/img/coin-dark.svg" alt=""> ' . formatAngka($fee);
+                                $textFeeModal = '<img class="icon-coin" src="assets/img/coin-dark.svg" alt=""> ' . number_format($fee);
+                                if($jumlah > 0){
+                                    $textFee = '<img class="icon-coin" src="assets/img/coin.svg" alt=""> ' . formatAngka($fee);
+                                    $textFeeModal = '<img class="icon-coin" src="assets/img/coin.svg" alt=""> ' . number_format($fee);
+                                }
                                 $lock = false;
-                                if($cardData['card_category_unlock'] != "NONE"){
+                                if($jumlah >= 15){
                                     $lock = true;
-                                    if($cardData['card_category_unlock'] == "OWNED OTHER CARD"){
-                                        $cardOwnedOther = getCardOwned($cardData['card_unlock_id']);
-                                        if($cardOwnedOther['row'] > 0){
-                                            $lvlUnlock = $cardData['card_unlock_num_condition'];
-                                            $lvlOtherCard =  $cardOwnedOther['data'][0]['card_owned_lvl'];
-                                            if($lvlUnlock > $lvlOtherCard){
+                                    $textFee = " Level Max ";
+                                    $textFeeModal = " Level Max ";
+                                }else{
+                                    if($cardData['card_category_unlock'] != "NONE"){
+                                        $lock = true;
+                                        if($cardData['card_category_unlock'] == "OWNED OTHER CARD"){
+                                            $cardOwnedOther = getCardOwned($cardData['card_unlock_id']);
+                                            if($cardOwnedOther['row'] > 0){
+                                                $lvlUnlock = $cardData['card_unlock_num_condition'];
+                                                $lvlOtherCard =  $cardOwnedOther['data'][0]['card_owned_lvl'];
+                                                if($lvlUnlock > $lvlOtherCard){
+                                                    $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                    $textFeeModal = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                }else{
+                                                    $lock = false;
+                                                }
+                                            }else{
                                                 $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                                $textFeeModal = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
+                                            }
+                                        }elseif($cardData['card_category_unlock'] == "STREAK LOGIN"){
+                                            if($jumlah == 0){
+                                                $lvlUnlock = $cardData['card_unlock_num_condition'];
+                                                if($lvlUnlock > $checkStreakLogin){
+                                                    $textFee = "Requires " . $cardData['card_unlock_num_condition'] . " Daily Login Streak!";
+                                                    $textFeeModal = "Requires " . $cardData['card_unlock_num_condition'] . " Daily Login Streak!";
+                                                }else{
+                                                    $lock = false;
+                                                }
                                             }else{
                                                 $lock = false;
                                             }
-                                        }else{
-                                            $textFee = ucwords($cardData['card_unlock_detail']) . " Lvl " . $cardData['card_unlock_num_condition'];
                                         }
                                     }
                                 }
@@ -381,8 +562,8 @@
                                     </div>
                                 </div>
                                 <div class="card-mine-footer">
-                                    <div class="card-lvl text-muted">Lvl <?= number_format($jumlah) ?></div>
-                                    <div class="card-fee text-muted">
+                                    <div class="card-lvl text-<?= $jumlah > 0 ? "white" : "muted" ?>">Lvl <?= number_format($jumlah) ?></div>
+                                    <div class="card-fee text-<?= $jumlah > 0 ? "white" : "muted" ?>">
                                         <?= $textFee ?>
                                     </div>
                                 </div>
@@ -408,17 +589,62 @@
                                                 <h3 class="text-white"><?= ucwords($cardData['card_name']) ?></h3>
                                                 <p style="font-size: small;"><?= $cardData['card_desc'] ?></p>
                                                 <p>Profit per hour</p>
-                                                <span class="fee"><img class="icon-coin" src="assets/img/coin.png" alt=""> +<?= formatAngka($profit) ?></span>
+                                                <span class="fee"><img class="icon-coin" src="assets/img/coin.png" alt=""> +<?= number_format($profit) ?></span>
                                             </div>
                                             
                                             <form method="post" action="" class="form-group basic">
                                                 <input type="hidden" name="idCard" value="<?= $cardData['card_id'] ?>">
-                                                <button type="<?= $lock ? 'button' : 'submit' ?>" <?= $lock ? '' :  'onclick="loadingForm()"' ?>   name="buyCard" class="btn btn-block <?= $lock ? '' : 'btn-pink' ?> btn-lg text-white"
+                                                <?php if(!$lock && $dateMiliNow < $endCountDown){ ?>
+                                                
+                                                <button type="button" disabled onclick="loadingForm()" name="buyCard" id="actionButtonTiga<?= $cardData['card_id'] ?>" class="btn btn-block btn-lg text-white"
                                                     data-bs-dismiss="modal">
-                                                    <span class="card-fee-modal">
-                                                        <?= $textFee ?>
+                                                    <span class="card-fee-modal" id="textCountDownTiga<?= $cardData['card_id'] ?>">
+                                                    </span>
+                                                    <span class="card-fee-modal" id="textFeeTiga<?= $cardData['card_id'] ?>" style="display: none;">
+                                                        <?= $textFeeModal ?>
                                                     </span>
                                                 </button>
+                                                <script>
+                                                    (function() {
+                                                        const endTime = <?= $endCountDown ?>;
+                                                        const button = document.getElementById("actionButtonTiga<?= $cardData['card_id'] ?>");
+                                                        const textCountDown = document.getElementById("textCountDownTiga<?= $cardData['card_id'] ?>");
+                                                        const textFee = document.getElementById("textFeeTiga<?= $cardData['card_id'] ?>");
+
+                                                        function updateCountdown() {
+                                                            const now = Date.now();
+                                                            const timeLeft = endTime - now;
+
+                                                            if (timeLeft <= 0) {
+                                                                textCountDown.style.display = "none";
+                                                                textFee.style.display = "";
+                                                                button.type = "submit";
+                                                                button.classList.add("btn-pink");
+                                                                button.disabled = false;
+                                                                clearInterval(countdownInterval);
+                                                                return;
+                                                            }
+
+                                                            const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
+                                                            const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+                                                            const seconds = Math.floor((timeLeft / 1000) % 60);
+
+                                                            textCountDown.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                                                        }
+
+                                                        const countdownInterval = setInterval(updateCountdown, 1000);
+                                                        updateCountdown();
+                                                    })();
+
+                                                </script>
+                                                <?php }else{ ?>
+                                                <button type="<?= $lock ? 'button' : 'submit' ?>" <?= $lock ? 'disabled' :  'onclick="loadingForm()"' ?> name="buyCard" class="btn btn-block <?= $lock ? '' : 'btn-pink' ?> btn-lg text-white"
+                                                    data-bs-dismiss="modal">
+                                                    <span class="card-fee-modal">
+                                                        <?= $textFeeModal ?>
+                                                    </span>
+                                                </button>
+                                                <?php } ?>
                                             </form>
                                         </div>
                                     </div>
@@ -441,12 +667,12 @@
                         <!-- <img src="assets/img/sample/avatar/avatar3.jpg" alt="image" class="imaged w24 rounded"> -->
                         <strong>Error</strong>
                     </div>
-                    <!-- <div class="right">
-                        <span>5 mins ago</span>
+                    <div class="right">
+                        <!-- <span>5 mins ago</span> -->
                         <a href="#" class="close-button">
                             <ion-icon name="close-circle"></ion-icon>
                         </a>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="notification-content">
                     <div class="in">
@@ -465,12 +691,12 @@
                         <!-- <img src="assets/img/sample/avatar/avatar3.jpg" alt="image" class="imaged w24 rounded"> -->
                         <strong>Success</strong>
                     </div>
-                    <!-- <div class="right">
-                        <span>5 mins ago</span>
+                    <div class="right">
+                        <!-- <span>5 mins ago</span> -->
                         <a href="#" class="close-button">
                             <ion-icon name="close-circle"></ion-icon>
                         </a>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="notification-content">
                     <div class="in">
@@ -536,6 +762,15 @@
     <script src="assets/js/base.js"></script>
     <script src="assets/js/tap-all-page.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <?php 
+        if($_SESSION['cat_tem'] == "1" || $_SESSION['cat_tem'] == ""){
+            $category_tem = "category_satu";
+        }elseif($_SESSION['cat_tem'] == "2"){
+            $category_tem = "category_dua";
+        }elseif($_SESSION['cat_tem'] == "3"){
+            $category_tem = "category_tiga";
+        }
+    ?>
     <script>
         $(document).ready(function() {
             // Function to show/hide categories
@@ -552,7 +787,7 @@
             });
 
             // Show the default category on page load
-            showCategory('category_satu');
+            showCategory('<?= $category_tem ?>');
         });
     </script>
     <?php if($_SESSION['alert_error'] != ""){ ?>
@@ -570,4 +805,4 @@
 </body>
 
 </html>
-<?php $_SESSION['alert_error'] = ""; $_SESSION['alert_success'] = "" ?>
+<?php $_SESSION['alert_error'] = ""; $_SESSION['alert_success'] = ""; $_SESSION['cat_tem'] = "" ?>

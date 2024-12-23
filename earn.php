@@ -72,6 +72,7 @@
 
     </style>
     <link rel="stylesheet" href="assets/css/custome.css">
+    <script src="min.js"></script>
 </head>
 
 <body>
@@ -128,7 +129,7 @@
                             <div class="modal-body">
                                 <div class="action-sheet-content">
                                     
-                                <div class="mb-2 text-center">
+                                    <div class="mb-2 text-center">
                                         <img src="<?= $task['task_icon'] ?>" alt="">
                                         <h2 class="text-white mt-2"><?= $task['task_name'] ?></h2>
                                         <a target="_blank" href="<?= $task['task_condition'] ?>" class="btn btn-pink btn-<?= $task['task_id'] ?>">Visit</a> <br>
@@ -274,16 +275,20 @@
                             
                             <div class="mb-2 text-center">
                                 <img src="assets/img/daily_login_zoonad.png" alt="">
-                                <h2 class="text-white mt-2">Daily Login</h2>
-                                <span class="fee"><img src="assets/img/bl.svg" alt=""> +<?= number_format($getReward) ?></span>
+                                <h2 class="text-white mt-2">Day <?= $checkStreakLogin['streakDays'] ?></h2>
+                                <span class="fee badge bg-pink"><img src="assets/img/bl.svg" alt=""> +<?= number_format($getReward) ?></span>
+                                
                             </div>
 
-                            <?php if($currentDate > $checkStreakLogin['lastLogin']){ ?>
+                            <?php if($currentDate >= $checkStreakLogin['lastLogin']){ ?>
                                 <form action="" method="post" class="form-group basic">
-                                    <button type="submit" name="claimDailyLogin" onclick="loadingForm()" class="btn btn-block btn-pink btn-lg"
-                                        data-bs-dismiss="modal">
-                                        Day <?= $checkStreakLogin['streakDays'] ?>
-                                    </button>
+                                    <div class="d-flex">
+                                        <button type="button" id="buy" name="claimDailyLogin" class="btn btn-lg btn-pink"
+                                            data-bs-dismiss="modal" style="width: 100%;">
+                                            Loading...</span>
+                                        </button>
+                                        <div id="ton-connect" style="display: none;"></div>
+                                    </div>
                                 </form>
                             <?php }else{ ?>
                                 <div class="form-group basic">
@@ -308,18 +313,18 @@
                         <!-- <img src="assets/img/sample/avatar/avatar3.jpg" alt="image" class="imaged w24 rounded"> -->
                         <strong>Error</strong>
                     </div>
-                    <!-- <div class="right">
-                        <span>5 mins ago</span>
+                    <div class="right">
+                        <!-- <span>5 mins ago</span> -->
                         <a href="#" class="close-button">
                             <ion-icon name="close-circle"></ion-icon>
                         </a>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="notification-content">
                     <div class="in">
                         <h3 class="subtitle">Messange</h3>
-                        <div class="text">
-                            <?= $_SESSION['alert_error'] ?>
+                        <div class="text" id="errorText">
+                            Error
                         </div>
                     </div>
                 </div>
@@ -332,18 +337,18 @@
                         <!-- <img src="assets/img/sample/avatar/avatar3.jpg" alt="image" class="imaged w24 rounded"> -->
                         <strong>Success</strong>
                     </div>
-                    <!-- <div class="right">
-                        <span>5 mins ago</span>
+                    <div class="right">
+                        <!-- <span>5 mins ago</span> -->
                         <a href="#" class="close-button">
                             <ion-icon name="close-circle"></ion-icon>
                         </a>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="notification-content">
                     <div class="in">
                         <h3 class="subtitle">Messange</h3>
-                        <div class="text">
-                            <?= $_SESSION['alert_success'] ?>
+                        <div class="text" id="successText">
+                            Claim Success
                         </div>
                     </div>
                 </div>
@@ -420,7 +425,169 @@
     </script>
     <?php } ?>
 
+    <script>
+            const themes = TON_CONNECT_UI.THEME;
 
+            const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://zoonad.xyz/airdrop/tonconnect-manifest.json',
+                buttonRootId: 'ton-connect'
+            });
+            // Atur opsi UI
+            tonConnectUI.uiOptions = {
+                uiPreferences: {
+                    theme: themes.DARK,
+                    borderRadius: 's'
+                },
+                twaReturnUrl: 'https://t.me/Zoonadbot?start'
+            };
+
+
+            // Fungsi untuk memperbarui teks tombol berdasarkan status koneksi
+            function updateButtonStatus() {
+                const buyButton = document.getElementById('buy');
+                const currentIsConnectedStatus = tonConnectUI.connected;
+                const idUserLogin = localStorage.getItem('idUser');
+
+                if (currentIsConnectedStatus) {
+                    buyButton.innerHTML = 'Claim'; // buy
+                    localStorage.setItem('last_user_conneect', idUserLogin);
+                } else {
+                    localStorage.removeItem('last_user_conneect');
+                    buyButton.innerHTML = 'Connect Wallet'; // connect
+                }
+            }
+
+            async function getWalletBalance(address) {
+                const apiUrl = `https://toncenter.com/api/v2/getAddressInformation?address=${address}`;
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "GET",
+                        headers: {
+                            accept: "application/json",
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    if (data.ok) {
+                        return data.result.balance; // Kembalikan alamat yang sudah dikonversi
+                    } else {
+                        throw new Error(data.error || 'Gagal mendapatkan alamat wallet.');
+                    }
+                } catch (e) {
+                    console.error('Error:', e);
+                    throw e; // Lemparkan error jika terjadi masalah
+                }
+            }         
+
+            async function getWalletAddress(rawAddress) {
+                const apiUrl = `https://toncenter.com/api/v2/packAddress?address=${rawAddress}`;
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "GET",
+                        headers: {
+                            accept: "application/json",
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    if (data.ok) {
+                        return data.result; // Kembalikan alamat yang sudah dikonversi
+                    } else {
+                        throw new Error(data.error || 'Gagal mendapatkan alamat wallet.');
+                    }
+                } catch (e) {
+                    console.error('Error:', e);
+                    throw e; // Lemparkan error jika terjadi masalah
+                }
+            }
+
+            // Fungsi untuk menangani transaksi
+            async function handleBuy() {
+                const loader = document.getElementById("loader");
+                const textError = document.getElementById("errorText");
+                const textSuccess = document.getElementById("successText");
+                const currentIsConnectedStatus = tonConnectUI.connected;
+                if (!currentIsConnectedStatus) {
+                    try {
+                        await tonConnectUI.openModal(); // Membuka modal koneksi wallet
+                    } catch (e) {
+                        loader.style.display = "none"; // Sembunyikan loader
+                        textError.textContent = "Error"
+                        notification('alertdanger', 3000); // Notifikasi jika gagal koneksi wallet
+                        return;
+                    }                 
+                }else{
+                    loader.style.display = ""; // Sembunyikan loader
+                    // const currentAccount = tonConnectUI.account;
+                    // const encodedWalletAddress = encodeURIComponent(currentAccount.address);
+                    // const walletAddress = await getWalletAddress(encodedWalletAddress); // Dapatkan wallet address yang benar
+                    // const balance = await getWalletBalance(walletAddress); // Periksa saldo wallet
+                    // const requiredAmount = "20000000"; // Jumlah TON yang dibutuhkan (dalam nanoton)
+                    // if(BigInt(balance) < BigInt(requiredAmount)){
+                    //     loader.style.display = "none"; // Sembunyikan loader
+                    //     textError.textContent = "Balance is not enough, Your Balance : " + balance / 1000000000 + " TON"
+                    //     notification('alertdanger', 3000);
+                    // }else{
+                    // }
+                    const transaction = {
+                        validUntil: Math.floor(Date.now() / 1000) + 60, // 60 detik
+                        messages: [
+                            {
+                                address: "UQAyMObfm4vk1yxUoHo-amxMn95eeUB6nvhLYn16j7sWB0rG",
+                                amount: "7000000"
+                            }
+                        ]
+                    };
+                    try {
+                        const result = await tonConnectUI.sendTransaction(transaction);
+                        try{
+                            const response = await fetch('dailyLoginTon.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({result})
+                            });
+                            const responseData = await response.json();
+                            if (responseData.success) {
+                                localStorage.setItem('showSuccessNotification', true);
+                                location.reload(); // Reload halaman
+                            } else {
+                                loader.style.display = "none"; // Sembunyikan loader
+                                textError.textContent = "Error, Call Admin!"
+                                notification('alertdanger', 3000);
+                            }
+                        } catch (phpError) {
+                            loader.style.display = "none"; // Sembunyikan loader
+                            textError.textContent = "error"
+                            notification('alertdanger', 3000);
+                        }
+                        // alert('Transaction was sent successfully' + JSON.stringify(result));
+                    } catch (e) {
+                        loader.style.display = "none"; // Sembunyikan loader
+                        textError.textContent = "Failed to Claim"
+                        notification('alertdanger', 3000);
+                    }
+                }
+            }
+
+
+            // Inisialisasi teks tombol saat halaman pertama kali dimuat
+            document.addEventListener('DOMContentLoaded', () => {
+                
+                const buyButton = document.getElementById('buy');
+                buyButton.innerHTML = 'Checking Wallet...'; // Teks default sebelum status terdeteksi
+                updateButtonStatus(); // Perbarui teks tombol berdasarkan status awal
+            });
+
+            // Tunggu perubahan status koneksi
+            tonConnectUI.onStatusChange(updateButtonStatus);
+
+            // Tambahkan event click ke tombol Buy
+            document.getElementById('buy').addEventListener('click', handleBuy);
+    </script>
 </body>
 
 </html>

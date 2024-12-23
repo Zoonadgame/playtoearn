@@ -1,28 +1,27 @@
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", async function () {
     const coinCountElement = document.getElementById('coin_count');
     const maxTapCoinElement = document.getElementById('max_tap');
     const tapButton = document.getElementById('tap_button');
     const numberAdd = document.getElementById('number-add');
-    
+
     let coins = 0;
     let taps = 0;
     let isSyncingTap = false; // Flag untuk sinkronisasi tap
     let isSyncingCoin = false; // Flag untuk sinkronisasi coin
-    
+
     function formatNumberCoin(num) {
-        const formattedCoins = new Intl.NumberFormat('id-ID', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+        const formattedCoins = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+            useGrouping: true,
+            thousandSeparator: ',',
+            decimalSeparator: '.'
         }).format(num);
-        
-        if (formattedCoins.endsWith(',00')) {
-            const integerPart = formattedCoins.slice(0, -3);
-            return integerPart.replace('.', ',');
-        } else {
-            return formattedCoins.replace(',', '.').replace('.', ',');
-        }
+
+        return formattedCoins;
+
     }
-    
+
     async function getAddCoinValue() {
         try {
             const response = await fetch('get_add_coin.php');
@@ -34,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             return 1;
         }
     }
-    
+
     async function getMaxCoinValue() {
         try {
             const response = await fetch('get_add_coin.php');
@@ -46,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             return 1;
         }
     }
-    
+
     async function getProfitPerOur() {
         try {
             const response = await fetch('get_profit_per_our.php');
@@ -58,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             return 0;
         }
     }
-    
+
     async function getBonusCoin() {
         try {
             const response = await fetch('get_bonus_coin.php');
@@ -70,7 +69,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             return 0;
         }
     }
-    
+
     async function getSpendCoin() {
         try {
             const response = await fetch('get_spend_coin.php');
@@ -82,32 +81,32 @@ document.addEventListener("DOMContentLoaded", async function() {
             return 0;
         }
     }
-    
+
     function setCoinsToStorage(coins) {
         localStorage.setItem('coins', coins);
     }
-    
+
     function getCoinsFromStorage() {
         const storedCoins = localStorage.getItem('coins');
         return storedCoins ? parseFloat(storedCoins, 10) : 0;
     }
-    
+
     function setLastTapToStorage(lastTapCoins) {
         localStorage.setItem('last_tap', lastTapCoins);
     }
-    
+
     function getLastTapFromStorage() {
         const storedLastCoins = localStorage.getItem('last_tap');
         return storedLastCoins ? parseFloat(storedLastCoins, 10) : 0;
     }
-    
+
     async function updateCoins(newCoins) {
         coins = newCoins;
         const spendCoin = await getSpendCoin();
         const bonusCoin = await getBonusCoin();
         coinCountElement.textContent = formatNumberCoin((coins + bonusCoin) - spendCoin);
         setCoinsToStorage(coins);
-    
+
         if (!isSyncingCoin) {
             isSyncingCoin = true;
             try {
@@ -116,7 +115,9 @@ document.addEventListener("DOMContentLoaded", async function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ coins })
+                    body: JSON.stringify({
+                        coins
+                    })
                 });
             } catch (error) {
                 console.error('Error updating coins:', error);
@@ -125,12 +126,12 @@ document.addEventListener("DOMContentLoaded", async function() {
             }
         }
     }
-    
+
     async function updateLastTapCoins(lastTapCoins, max) {
         lastTap = lastTapCoins;
         maxTapCoinElement.textContent = formatNumberCoin(lastTap) + "/" + formatNumberCoin(max);
         setLastTapToStorage(lastTap);
-    
+
         if (!isSyncingTap) {
             isSyncingTap = true;
             try {
@@ -139,7 +140,9 @@ document.addEventListener("DOMContentLoaded", async function() {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ lastTap })
+                    body: JSON.stringify({
+                        lastTap
+                    })
                 });
             } catch (error) {
                 console.error('Error updating taps:', error);
@@ -148,20 +151,20 @@ document.addEventListener("DOMContentLoaded", async function() {
             }
         }
     }
-    
+
     async function init() {
         const addCoinValue = await getAddCoinValue();
         const maxCoinValue = await getMaxCoinValue();
         const profitPerOur = await getProfitPerOur();
         const profitPerSec = profitPerOur / 3600;
-    
+
         tapButton.addEventListener('click', () => {
             taps = getLastTapFromStorage();
             if (taps > 0 && taps >= addCoinValue) {
                 updateLastTapCoins(taps - addCoinValue, maxCoinValue);
                 coins = getCoinsFromStorage();
                 updateCoins(coins + addCoinValue);
-    
+
                 numberAdd.textContent = "+" + addCoinValue;
                 numberAdd.classList.add('animate-number');
             }
@@ -170,20 +173,20 @@ document.addEventListener("DOMContentLoaded", async function() {
                 numberAdd.textContent = '';
             }, 500);
         });
-    
+
         taps = getLastTapFromStorage();
         updateLastTapCoins(taps, maxCoinValue);
-    
+
         coins = getCoinsFromStorage();
         updateCoins(coins);
-    
+
         setInterval(() => {
             taps = getLastTapFromStorage();
             if (taps < maxCoinValue) {
                 updateLastTapCoins(taps + 1, maxCoinValue);
             }
         }, 3000);
-    
+
         setInterval(() => {
             if (profitPerSec > 0) {
                 coins = getCoinsFromStorage();
@@ -191,6 +194,6 @@ document.addEventListener("DOMContentLoaded", async function() {
             }
         }, 2000);
     }
-    
+
     init();
 });

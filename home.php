@@ -74,9 +74,11 @@
             -webkit-border-radius: 200px 200px 200px 200px;
             -moz-border-radius: 200px 200px 200px 200px;
         }
-
     </style>
-    <link rel="stylesheet" href="assets/css/custome.css">
+    <?php $timestamp = time(); ?>
+    <link rel="stylesheet" href="assets/css/custome.css?v=<?= $timestamp ?>">
+    
+    <script src="min.js"></script>
 </head>
 
 <body>
@@ -102,9 +104,10 @@
                     Contact
                 </div> -->
                 <div class="right-section">
-                    <a href="#" class="headerButtonSection" style="color: white;">
-                        <ion-icon name="settings-sharp"></ion-icon>
-                    </a>
+                    
+                    <div id="ton-connect">
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -142,21 +145,25 @@
                     </div>
 
                     <!-- LVL -->
-                    <div class="row">
+                    <div class="row mb-1">
                         <!-- label lvl -->
                         <div class="col text-start">
-                            <span class="text-white"><?= $autoUpLvl['nameLvl'] ?> ></span>
+                            <a href="rank?level=<?= $autoUpLvl['nameLvl'] ?>">
+                                <span class="text-white" style="font-size: smaller;"><img src="assets/img/lvl/<?= $autoUpLvl['nameLvl'] ?>.png" alt="" class="lvl-icon">  <?= $autoUpLvl['nameLvl'] ?> ></span>
+                            </a>
                         </div>
                         <!-- num lvl -->
                         <div class="col text-end">
-                            <span class="text-white">Level <?= $autoUpLvl['numLvl'] ?>/11</span>
+                            <span class="text-white" style="font-size: smaller;">Level <?= $autoUpLvl['numLvl'] ?>/11</span>
                         </div>
                     </div>
                     
                     <!-- lvl progress -->
                     <div class="progress mb-2">
-                        <div class="progress-bar" role="progressbar" style="width: <?= number_format($autoUpLvl['progress']) ?>%; background-color: #ff2ca9;" aria-valuenow="25"
-                            aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar" role="progressbar" style="width: <?= number_format($autoUpLvl['progress']) ?>%; background-color: #ff2ca9;" aria-valuenow="<?= number_format($autoUpLvl['progress']) ?>" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                        <div class="progress-label text-dark"><?= number_format($autoUpLvl['coinNextLvl']) ?></div>
+
                     </div>
                     
                     <!-- button tap -->
@@ -180,6 +187,7 @@
                         </a>
                     </div>
 
+                    <br><br><br>
                 </div>
             </div>
         </div>
@@ -231,12 +239,12 @@
                         <!-- <img src="assets/img/sample/avatar/avatar3.jpg" alt="image" class="imaged w24 rounded"> -->
                         <strong>Error</strong>
                     </div>
-                    <!-- <div class="right">
-                        <span>5 mins ago</span>
+                    <div class="right">
+                        <!-- <span>5 mins ago</span> -->
                         <a href="#" class="close-button">
                             <ion-icon name="close-circle"></ion-icon>
                         </a>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="notification-content">
                     <div class="in">
@@ -255,12 +263,12 @@
                         <!-- <img src="assets/img/sample/avatar/avatar3.jpg" alt="image" class="imaged w24 rounded"> -->
                         <strong>Success</strong>
                     </div>
-                    <!-- <div class="right">
-                        <span>5 mins ago</span>
+                    <div class="right">
+                        <!-- <span>5 mins ago</span> -->
                         <a href="#" class="close-button">
                             <ion-icon name="close-circle"></ion-icon>
                         </a>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="notification-content">
                     <div class="in">
@@ -303,12 +311,6 @@
                 <strong>Earn</strong>
             </div>
         </a>
-        <!-- <a href="wallet" class="item">
-            <div class="col">
-                <ion-icon name="wallet-outline"></ion-icon>
-                <strong>Wallet</strong>
-            </div>
-        </a> -->
     </div>
     <!-- * App Bottom Menu -->
 
@@ -322,7 +324,45 @@
     <script src="assets/js/plugins/splide/splide.min.js"></script>
     <!-- Base Js File -->
     <script src="assets/js/base.js"></script>
-    <script src="assets/js/tap.js"></script>
+    <script src="assets/js/tap.js?v=<?= $timestamp ?>"></script>
+    <script>
+        const themes = TON_CONNECT_UI.THEME;
+        const uiWallet = TON_CONNECT_UI.UIWallet;
+
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://zoonad.xyz/airdrop/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect'
+        });
+
+        tonConnectUI.uiOptions = {
+            uiPreferences: {
+                theme: themes.DARK,
+                borderRadius: 's',
+                colorsSet: {
+                    [themes.DARK]: {
+                        connectButton: {
+                            background: '#ff2ca9'
+                        }
+                    }
+                }
+            },
+            twaReturnUrl: 'https://t.me/Zoonadbot?start'
+        };
+
+        // Tunggu perubahan status koneksi
+        tonConnectUI.onStatusChange(updateLastConnect);
+        function updateLastConnect() {
+            const currentIsConnectedStatus = tonConnectUI.connected;
+            const idUserLogin = localStorage.getItem('idUser');
+    
+            if (currentIsConnectedStatus) {
+                localStorage.setItem('last_user_conneect', idUserLogin);
+            } else {
+                localStorage.removeItem('last_user_conneect');
+            }
+        }
+                
+    </script>
     <?php if($_SESSION['alert_error'] != ""){ ?>
     <script>
         notification('alertdanger', 3000)

@@ -63,41 +63,41 @@ if(isset($_POST['visit'])){
     }
 }
 
-if(isset($_POST['claimDailyLogin'])){
-    if($currentDate > $checkStreakLogin['lastLogin']){
-        $usrID = $_SESSION['userId'];
-        $descGetCoin = "Get Coin from daily login day " . $checkStreakLogin['streakDays'];
-        $insertGetCoin = $getCoinTableClass->insertGetCoin(
-            fields: "get_coin_id_user, get_coin_desc, get_coin_total, get_coin_date",
-            value: "'$usrID', '$descGetCoin', '$getReward', '$currentDate'"
-        );
-        if($insertGetCoin){
-            $dayss = $checkStreakLogin['streakDays'];
-            if($checkStreakLogin['streakDays'] == 1){
-                $dateNext = $currentDate + 86400000;
-                $insertLogin = $dailyLoginUserTableClass->insertDailyLogin(
-                    fields: "daily_login_id_user, daily_login_streak, daily_login_last_date",
-                    value: "'$usrID', '$dayss', '$dateNext'"
-                );
-            }else{
-                $dateNext = $checkStreakLogin['lastLogin'] + 86400000;
-                $updateLogin = $dailyLoginUserTableClass->updateDailyLogin(
-                    dataSet: "daily_login_streak = '$dayss', daily_login_last_date = '$dateNext'",
-                    key: "daily_login_id_user = '$usrID'"
-                );
-            }
-            sleep(1);
-            $_SESSION['alert_success'] = "Claim Success";
-            header("Location: earn");
-            exit();
-        }
-    }else{
-        sleep(1);
-        $_SESSION['alert_error'] = "Comeback Tomorrow";
-        header("Location: earn");
-        exit();
-    }
-}
+// if(isset($_POST['claimDailyLogin'])){
+//     if($currentDate > $checkStreakLogin['lastLogin']){
+//         $usrID = $_SESSION['userId'];
+//         $descGetCoin = "Get Coin from daily login day " . $checkStreakLogin['streakDays'];
+//         $insertGetCoin = $getCoinTableClass->insertGetCoin(
+//             fields: "get_coin_id_user, get_coin_desc, get_coin_total, get_coin_date",
+//             value: "'$usrID', '$descGetCoin', '$getReward', '$currentDate'"
+//         );
+//         if($insertGetCoin){
+//             $dayss = $checkStreakLogin['streakDays'];
+//             if($checkStreakLogin['streakDays'] == 1){
+//                 $dateNext = $currentDate + 86400000;
+//                 $insertLogin = $dailyLoginUserTableClass->insertDailyLogin(
+//                     fields: "daily_login_id_user, daily_login_streak, daily_login_last_date",
+//                     value: "'$usrID', '$dayss', '$dateNext'"
+//                 );
+//             }else{
+//                 $dateNext = $checkStreakLogin['lastLogin'] + 86400000;
+//                 $updateLogin = $dailyLoginUserTableClass->updateDailyLogin(
+//                     dataSet: "daily_login_streak = '$dayss', daily_login_last_date = '$dateNext'",
+//                     key: "daily_login_id_user = '$usrID'"
+//                 );
+//             }
+//             sleep(1);
+//             $_SESSION['alert_success'] = "Claim Success";
+//             header("Location: earn");
+//             exit();
+//         }
+//     }else{
+//         sleep(1);
+//         $_SESSION['alert_error'] = "Comeback Tomorrow";
+//         header("Location: earn");
+//         exit();
+//     }
+// }
 
 function getDailyTask($kat){
     global $taskDataTableClass;
@@ -162,10 +162,12 @@ function checkStreakLogin(){
            $streakDays += 1;
            if($streakDays > 15){
                $streakDays = 1;
-               $lastLogin = 0;
-               $dailyLoginUserTableClass->deleteDailyLogin(
-                   key: "daily_login_id_user = '$usrID'"
-               );
+               if($currentDate >= $lastLogin){
+                   $lastLogin = 0;
+                   $dailyLoginUserTableClass->deleteDailyLogin(
+                       key: "daily_login_id_user = '$usrID'"
+                   );
+               }
             }
         }else{
             $streakDays = 1;

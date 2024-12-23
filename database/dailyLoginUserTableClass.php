@@ -3,7 +3,7 @@
 class dailyLoginUserTableClass extends connMySQLClass{
     
     // SET ATTRIBUTE TABLE NAME
-    private $table_name = "daily_login_user_zoonad";
+    private $table_name = "daily_login_user_zoonad_ton";
     
     // CREATE DEFAULT TABLE
     public function __construct(){

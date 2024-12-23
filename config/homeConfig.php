@@ -89,6 +89,7 @@ function autoUpLvl(){
     $nameLvlNow = $getLvlUser['nameLvl'];
     $getNextLvlUser = getNextLvlUser($numLvlNow);
     $NameLvlNext = $getNextLvlUser['lvlName'];
+    $CoinLvlNext = $getNextLvlUser['startCoin'];
     global $userTableClass;
     $usrID = $_SESSION['userId'];
     if($progressLvl >= 100){
@@ -103,8 +104,9 @@ function autoUpLvl(){
         }
     }
     return [
-        "numLvl" => $numLvlNow,
         "nameLvl" => $nameLvlNow,
+        "coinNextLvl" => $CoinLvlNext,
+        "numLvl" => $numLvlNow,
         "progress" => $progressLvl
     ];
 

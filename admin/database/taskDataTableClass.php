@@ -1,9 +1,9 @@
 <?php  
 // CLASS TABLE USER
-class cardOwnedTableClass extends connMySQLClass{
+class taskDataTableClass extends connMySQLClass{
     
     // SET ATTRIBUTE TABLE NAME
-    private $table_name = "card_owned_zoonad";
+    private $table_name = "task_data_zoonad";
     
     // CREATE DEFAULT TABLE
     public function __construct(){
@@ -12,10 +12,16 @@ class cardOwnedTableClass extends connMySQLClass{
             // SET QUERY
             $sql = "CREATE TABLE $this->table_name (
                 id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                card_owned_id_user INT(11) NOT NULL,
-                card_owned_id_card INT(11) NOT NULL,
-                card_owned_lvl INT(11) NOT NULL,
-                card_owned_upgrade_date TEXT NOT NULL
+                task_id VARCHAR(11) NOT NULL UNIQUE,
+                task_name VARCHAR(250) NOT NULL,
+                task_icon TEXT NOT NULL,
+                task_desk TEXT NOT NULL,
+                task_type ENUM('link','inv friends', 'have friends') NOT NULL,
+                task_category ENUM('YT', 'OTHER') NOT NULL,
+                task_condition TEXT NOT NULL,
+                task_reward DOUBLE NOT NULL,
+                task_date_create TEXT NOT NULL,
+                task_date_expired TEXT NOT NULL
             )";
             // EXECUTE THE QUERY TO CREATE TABLE
             $this->dbConn()->query($sql);
@@ -24,8 +30,8 @@ class cardOwnedTableClass extends connMySQLClass{
         }
     }
 
-    // insert data card
-    public function insertCardOwned(string $fields, string $value){
+    // insert data task
+    public function insertTaskData(string $fields, string $value){
         // query
         $sql = "INSERT INTO $this->table_name ($fields) VALUE($value)";
         // EXECUTE THE QUERY TO CREATE TABLE
@@ -35,8 +41,8 @@ class cardOwnedTableClass extends connMySQLClass{
         return $exe;
     }
 
-    // get data card
-    public function selectCardOwned(string $fields, string $key){
+    // get data task
+    public function selectTaskData(string $fields, string $key){
         // query
         $sql = "SELECT $fields FROM $this->table_name WHERE $key";
         // EXECUTE QUERY
@@ -54,8 +60,8 @@ class cardOwnedTableClass extends connMySQLClass{
         return $result;
     }
     
-    // update data card
-    public function updateCardOwned(string $dataSet, string $key){
+    // update data task
+    public function updateTaskData(string $dataSet, string $key){
         // query
         $sql = "UPDATE $this->table_name SET $dataSet WHERE $key";
         // EXECUTE THE QUERY TO CREATE TABLE

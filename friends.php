@@ -85,12 +85,12 @@
                         <!-- <img src="assets/img/sample/avatar/avatar3.jpg" alt="image" class="imaged w24 rounded"> -->
                         <strong>Success</strong>
                     </div>
-                    <!-- <div class="right">
-                        <span>5 mins ago</span>
+                    <div class="right">
+                        <!-- <span>5 mins ago</span> -->
                         <a href="#" class="close-button">
                             <ion-icon name="close-circle"></ion-icon>
                         </a>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="notification-content">
                     <div class="in">
